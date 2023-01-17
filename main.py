@@ -56,7 +56,7 @@ def keras():
 
         # run the inference
         prediction = model.predict(data)
-        if prediction.argmax() >= threshold:
+        if prediction.argmax() >= threshold/100:
             Id, recognized_object = labels[prediction.argmax()] # the label that corresponds to highest prediction
         else:
             recognized_object = "unknown"
