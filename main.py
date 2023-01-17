@@ -12,7 +12,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 # Load the model
-model = tensorflow.keras.models.load_model('keras_model.h5')
+model = tensorflow.keras.models.load_model('keras_model.h5', compile=False)
 
 # Load labels
 labels = []
@@ -35,7 +35,7 @@ def read_tensor_from_image_url(url,
 
     return normalized
 
-@app.route("/prediction/", methods=['POST'])
+@app.route("/prediction/", methods=['GET', 'POST'])
 def keras():
     #Get all the values in your POST request. 
     apikey = request.args.get('apikey')
