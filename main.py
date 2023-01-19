@@ -11,15 +11,19 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)
+
+np.set_printoptions(suppress=True)
 # Load the model
 model = tensorflow.keras.models.load_model('keras_model.h5', compile=False)
 
 # Load labels
-labels = []
-labels_txt = open('labels.txt','r')
-for line in labels_txt:
-    labels.append(line.strip().split())
-labels_txt.close()
+# labels = []
+# labels_txt = open('labels.txt','r')
+# for line in labels_txt:
+#     labels.append(line.strip().split())
+# labels_txt.close()
+
+class_names = open('labels.txt', 'r').readlines()
 
 def read_tensor_from_image_url(url,
                                input_height=224,
@@ -56,12 +60,20 @@ def keras():
 
         # run the inference
         prediction = model.predict(data)
-        if prediction.argmax() >= threshold/100:
-            Id, recognized_object = labels[prediction.argmax()] # the label that corresponds to highest prediction
+        # if prediction.argmax() >= threshold/100:
+        #     Id, recognized_object = labels[prediction.argmax()] # the label that corresponds to highest prediction
+        # else:
+        #     recognized_object = "unknown"
+
+        index = np.argmax(prediction)
+        class_name = class_names[index]
+        confidence_score = prediction[0][index]
+        if confidence_score >= threshold/100:
+            return class_name, 200
         else:
-            recognized_object = "unknown"
+            return "not known", 200
         #Return the prediction and a 200 status
-        return recognized_object, 200
+        #return recognized_object, 200
 
     else:
         #If the apikey is not the same, then return a 400 status indicating an error.
