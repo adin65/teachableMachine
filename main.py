@@ -4,6 +4,7 @@ import numpy as np
 import requests
 import tensorflow as tf
 import os
+from io import BytesIO
 
 # Import Flask API
 from flask import Flask, request
@@ -14,7 +15,7 @@ CORS(app)
 
 np.set_printoptions(suppress=True)
 # Load the model
-model = tensorflow.keras.models.load_model('keras_model.h5', compile=False)
+model = tensorflow.keras.models.load_model('keras_model_num.h5', compile=False)
 
 # Load labels
 # labels = []
@@ -39,6 +40,15 @@ def read_tensor_from_image_url(url,
 
     return normalized
 
+def loadImage(URL,
+              input_height=224,
+              input_width=224):
+    res = requests.get(URL)
+    img = Image.open(BytesIO(res.content)).convert('RGB')
+    img = ImageOps.fit(img, (input_width, input_height), Image.Resampling.LANCZOS)
+
+    return img
+
 @app.route("/prediction/", methods=['GET', 'POST'])
 def keras():
     #Get all the values in your POST request. 
@@ -49,7 +59,7 @@ def keras():
     #Change this if you're using this method.
     if apikey == '123-456-7890-0987-654321': 
          #Follow all the neccessary steps to get the prediction of your image. 
-        image = read_tensor_from_image_url(image)
+        image = loadImage(image)
         #turn the image into a numpy array
         image_array = np.asarray(image)
         # Normalize the image
@@ -68,6 +78,7 @@ def keras():
         index = np.argmax(prediction)
         class_name = class_names[index]
         confidence_score = prediction[0][index]
+        print(index, class_name, confidence_score, prediction)
         if confidence_score >= threshold/100:
             return class_name, 200
         else:
